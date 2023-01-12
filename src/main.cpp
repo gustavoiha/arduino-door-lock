@@ -2,8 +2,9 @@
 
 #define MAX_NUMBER_OF_PASSWORDS = 10;
 #define PASSWORD_LENGTH = 6;
-#define MAXIMUM_TIME_BETWEEN_KEYS_IN_SECONDS = 3;
 #define DOOR_RELAY_HIGH_OUTPUT_DURATION_IN_MILISECONDS = 50;
+#define DEFAULT_DELAY_IN_MILISECONDS = 10;
+#define CLEAR_PASSWORD_INPUT_INTERVAL_IN_SECONDS = 3;
 
 // Door mechanism configuration
 
@@ -36,8 +37,15 @@ char keypadPasswords[MAX_NUMBER_OF_PASSWORDS][PASSWORD_LENGTH + 1] = {
   "234567"
 };
 
-// temporary inputted password
+// inputted password
 char keypadInput[PASSWORD_LENGTH] = {0};
+
+// current index of inputted password char
+int keypadInputIndex = 0;
+
+unsigned long lastKeypadInputTime = 0;
+
+const unsigned long interval = 1000;
 
 // main setup
 
@@ -50,11 +58,16 @@ void setup () {
 
 // Password reading
 
-void readPasswordInput () {
-  char keypadCharInput = keypad.getKey();
+void storeLastKeypadInputTime () {
+  lastKeypadInputTime = millis();
+}
 
-  if (keypadCharInput) {
-    strncat(keypadInput, &keypadCharInput, 1);
+void readPasswordInput () {
+  char input = keypad.getKey();
+
+  if (input) {
+    strncat(keypadInput, &input, 1);
+    storeLastKeypadInputTime();
   }
 }
 
@@ -62,7 +75,7 @@ int sizeOfKeypadInput () {
   int count = 0;
 
   for (int i = 0; i < PASSWORD_LENGTH; i++) {
-    if (keypadCharInput[i] != 0) {
+    if (keypadInput[i] != 0) {
       count++;
     }
   }
@@ -89,8 +102,19 @@ void checkPassword () {
   }
 }
 
+void clearPasswordInput () {
+  unsigned long currentTime = millis();
+
+  if (currentTime - lastKeypadInputTime >= CLEAR_PASSWORD_INPUT_INTERVAL_IN_SECONDS) {
+    lastKeypadInputTime = currentTime;
+    memset(keypadInput, '\0', PASSWORD_LENGTH);
+  }
+}
+
 void loop () {
   readPasswordInput();
   checkPassword();
-  maybeClearInput();
+  clearPasswordInput();
+
+  delay(DEFAULT_DELAY_IN_MILISECONDS);
 }
