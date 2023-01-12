@@ -66,7 +66,7 @@ void readPasswordInput () {
   char input = keypad.getKey();
 
   if (input) {
-    strncat(keypadInput, &input, 1);
+    keypadInput[keypadInputIndex++] = input;
     storeLastKeypadInputTime();
   }
 }
@@ -89,13 +89,24 @@ void openDoor () {
   delay(DOOR_RELAY_HIGH_OUTPUT_DURATION_IN_MILISECONDS);
 }
 
+bool passwordMatches (input, password) {
+  for (int i = 0; i < PASSWORD_LENGTH; i++) {
+    if (input[i] == password[i]) {
+      return true;
+      break;
+    }
+  }
+
+  return false;
+}
+
 void checkPassword () {
   if (sizeOfKeypadInput() < PASSWORD_LENGTH) {
     return;
   }
 
   for (int i = 0; i < MAX_NUMBER_OF_PASSWORDS; i++) {
-    if (strcmp(keypadInput, keypadPasswords[i]) == 0) {
+    if (passwordMatches(keypadInput, keypadPasswords[i])) {
       openDoor();
       break;
     }
@@ -107,6 +118,7 @@ void clearPasswordInput () {
 
   if (currentTime - lastKeypadInputTime >= CLEAR_PASSWORD_INPUT_INTERVAL_IN_SECONDS) {
     lastKeypadInputTime = currentTime;
+    keypadInputIndex = 0;
     memset(keypadInput, '\0', PASSWORD_LENGTH);
   }
 }
