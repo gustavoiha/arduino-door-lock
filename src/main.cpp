@@ -1,10 +1,15 @@
 #include <Keypad.h>
 
-#define NUMBER_OF_PASSWORDS = 10;
+#define MAX_NUMBER_OF_PASSWORDS = 10;
 #define PASSWORD_LENGTH = 6;
 #define MAXIMUM_TIME_BETWEEN_KEYS_IN_SECONDS = 3;
+#define DOOR_RELAY_HIGH_OUTPUT_DURATION_IN_MILISECONDS = 50;
 
-// Keypad variables
+// Door mechanism configuration
+
+const int doorRelayPin = 10;
+
+// Keypad configuration
 
 // amount of keypad rows and columns
 const byte KEYPAD_ROWS = 4;
@@ -26,30 +31,66 @@ keymap = makeKeymap(keypadHexaKeys);
 Keypad keypad = Keypad(keymap, keypadRowPins, keypadColPins, KEYPAD_ROWS, KEYPAD_COLS);
 
 // allowed passwords
-char keypadPasswords[2][7] = {
+char keypadPasswords[MAX_NUMBER_OF_PASSWORDS][PASSWORD_LENGTH + 1] = {
   "123456",
   "234567"
 };
 
-// temporarilly stored inputted password
+// temporary inputted password
 char keypadInput[PASSWORD_LENGTH] = {0};
 
-// main setup and loop
+// main setup
 
 void setup () {
   Serial.begin(9600);
+
+  // Set door relay pin to output
+  pinMode(doorRelayPin, OUTPUT);
 }
 
-void loop () {
+// Password reading
+
+void readPasswordInput () {
   char keypadCharInput = keypad.getKey();
 
   if (keypadCharInput) {
     strncat(keypadInput, &keypadCharInput, 1);
   }
+}
 
-  for (int i = 0; i < 2; i++) {
-    if (strcmp(keypadInput, keypadPasswords[i]) == 0) {
-      // matched password
+int sizeOfKeypadInput () {
+  int count = 0;
+
+  for (int i = 0; i < PASSWORD_LENGTH; i++) {
+    if (keypadCharInput[i] != 0) {
+      count++;
     }
   }
+
+  return count;
+}
+
+void openDoor () {
+  // Digital write to door relay.
+  digitalWrite(doorRelayPin, HIGH);
+  delay(DOOR_RELAY_HIGH_OUTPUT_DURATION_IN_MILISECONDS);
+}
+
+void checkPassword () {
+  if (sizeOfKeypadInput() < PASSWORD_LENGTH) {
+    return;
+  }
+
+  for (int i = 0; i < MAX_NUMBER_OF_PASSWORDS; i++) {
+    if (strcmp(keypadInput, keypadPasswords[i]) == 0) {
+      openDoor();
+      break;
+    }
+  }
+}
+
+void loop () {
+  readPasswordInput();
+  checkPassword();
+  maybeClearInput();
 }
