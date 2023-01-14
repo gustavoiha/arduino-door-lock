@@ -7,20 +7,21 @@
 #define KEYPAD_ROWS 4
 #define KEYPAD_COLS 4
 
-const char keypadHexaKeys[KEYPAD_ROWS][KEYPAD_COLS] = {
+const char KEYPAD_HEXA_KEYS[KEYPAD_ROWS][KEYPAD_COLS] = {
   {'1','2','3','A'},
   {'4','5','6','B'},
   {'7','8','9','C'},
   {'*','0','#','D'}
 };
 
-const byte keypadRowPins[KEYPAD_ROWS] = {9, 8, 7, 6};
-const byte keypadColPins[KEYPAD_COLS] = {5, 4, 3, 2};
+const byte KEYPAD_ROW_PINS[KEYPAD_ROWS] = {9, 8, 7, 6};
+const byte KEYPAD_COL_PINS[KEYPAD_COLS] = {5, 4, 3, 2};
 
 const unsigned long CLEAR_PASSWORD_INPUT_INTERVAL_IN_SECONDS = 3;
 
+void initPasswordKeypad();
 void readPasswordInput();
-void checkPassword();
+void checkPassword(void (*openDoorCallback)());
 void clearPasswordInput();
 
 #endif

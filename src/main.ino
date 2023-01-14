@@ -1,25 +1,24 @@
+#include "Lock_Mechanism.h"
 #include "Password_Keypad.h"
+#include "Push_Button.h"
 
-#define DOOR_RELAY_HIGH_OUTPUT_DURATION_IN_MILISECONDS 50;
-#define DEFAULT_DELAY_IN_MILISECONDS 10;
-
-const int doorRelayPin = 10;
-
-void openDoor() {
-  digitalWrite(doorRelayPin, HIGH);
-  delay(DOOR_RELAY_HIGH_OUTPUT_DURATION_IN_MILISECONDS);
-}
+#define DEFAULT_SYSTEM_DELAY_IN_MILISECONDS 100;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(doorRelayPin, OUTPUT);
-  initPasswordKeypad(keypad);
+  initDoorLock();
+  initPasswordKeypad();
+  initPushButton();
 }
 
 void loop() {
+  // Open door lock via keypad password
   readPasswordInput();
-  checkPassword();
+  checkPassword(&openDoorLock);
   clearPasswordInput();
 
-  delay(DEFAULT_DELAY_IN_MILISECONDS);
+  // Open door lock via push button
+  checkPushButton(&openDoorLock);
+
+  delay(DEFAULT_SYSTEM_DELAY_IN_MILISECONDS);
 }
