@@ -13,9 +13,7 @@ void setup() {
 
 void loop() {
   // Open door lock via keypad password
-  readPasswordInput();
-  checkPassword(&openDoorLock);
-  clearPasswordInput();
+  checkPasswordKeypad(&openDoorLock);
 
   // Open door lock via push button
   checkPushButton(&openDoorLock);

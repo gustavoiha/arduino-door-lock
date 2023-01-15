@@ -17,11 +17,34 @@ void initPasswordKeypad() {
   keypad = Keypad(makeKeymap(KEYPAD_HEXA_KEYS), KEYPAD_ROW_PINS, KEYPAD_COL_PINS, KEYPAD_ROWS, KEYPAD_COLS);
 }
 
+void checkPasswordKeypad(void (*openDoorCallback)()) {
+  clearOldKeypadInput();
+  readKeypadInput();
+
+  if (sizeOfKeypadInput() < PASSWORD_LENGTH) {
+    return;
+  }
+
+  switch (operationMode) {
+    case OperationMode::READ_PASSWORD:
+      if (keypadInputMatchesPassword()) {
+        openDoorCallback();
+      }
+      break;
+    case OperationMode::ADD_PASSWORD:
+      addInputToPasswords();
+      break;
+  }
+}
+
+void addInputToPasswords() {
+}
+
 void storeLastKeypadInputTime() {
   lastKeypadInputTime = millis();
 }
 
-void readPasswordInput() {
+void readKeypadInput() {
   char input = keypad.getKey();
   if (input) {
     keypadInput[keypadInputIndex++] = input;
@@ -50,20 +73,18 @@ bool passwordMatches(char input[], char password[]) {
   return false;
 }
 
-void checkPassword(void (*openDoorCallback)()) {
-  if (sizeOfKeypadInput() < PASSWORD_LENGTH) {
-    return;
-  }
-
+bool keypadInputMatchesPassword() {
   for (int i = 0; i < MAX_NUMBER_OF_PASSWORDS; i++) {
     if (passwordMatches(keypadInput, keypadPasswords[i])) {
-      openDoorCallback();
+      return true;
       break;
     }
   }
+
+  return false;
 }
 
-void clearPasswordInput() {
+void clearOldKeypadInput() {
   unsigned long currentTime = millis();
 
   if (currentTime - lastKeypadInputTime >= CLEAR_PASSWORD_INPUT_INTERVAL_IN_SECONDS) {
