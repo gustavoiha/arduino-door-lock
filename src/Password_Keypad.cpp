@@ -1,27 +1,37 @@
 #include "Password_Keypad.h"
 #include <Keypad.h>
 
+#include <vector>
+#include <string>
+
 Keypad keypad;
 
-char keypadPasswords[MAX_NUMBER_OF_PASSWORDS][PASSWORD_LENGTH + 1] = {
-  "123456",
-  "234567"
-};
-
-char keypadInput[PASSWORD_LENGTH] = {0};
-int keypadInputIndex = 0;
+std::vector<std::string> passwords;
+std::string keypadInput;
 
 unsigned long lastKeypadInputTime = 0;
 
 void initPasswordKeypad() {
-  keypad = Keypad(makeKeymap(KEYPAD_HEXA_KEYS), KEYPAD_ROW_PINS, KEYPAD_COL_PINS, KEYPAD_ROWS, KEYPAD_COLS);
+  enableFactoryPassword();
+
+  keypad = Keypad(
+    makeKeymap(KEYPAD_HEXA_KEYS),
+    KEYPAD_ROW_PINS,
+    KEYPAD_COL_PINS,
+    KEYPAD_ROWS,
+    KEYPAD_COLS
+  );
+}
+
+void enableFactoryPassword() {
+  passwords.push_back(FACTORY_PASSWORD);
 }
 
 void checkPasswordKeypad(void (*openDoorCallback)()) {
   clearOldKeypadInput();
   readKeypadInput();
 
-  if (sizeOfKeypadInput() < PASSWORD_LENGTH) {
+  if (keypadInput.length() < PASSWORD_LENGTH) {
     return;
   }
 
@@ -38,6 +48,7 @@ void checkPasswordKeypad(void (*openDoorCallback)()) {
 }
 
 void addInputToPasswords() {
+  passwords.push_back(keypadInput);
 }
 
 void storeLastKeypadInputTime() {
@@ -46,38 +57,17 @@ void storeLastKeypadInputTime() {
 
 void readKeypadInput() {
   char input = keypad.getKey();
+
   if (input) {
-    keypadInput[keypadInputIndex++] = input;
+    keypadInput.push_back(input);
     storeLastKeypadInputTime();
   }
 }
 
-int sizeOfKeypadInput() {
-  int count = 0;
-
-  for (int i = 0; i < PASSWORD_LENGTH; i++) {
-    if (keypadInput[i] != 0) {
-      count++;
-    }
-  }
-
-  return count;
-}
-
-bool passwordMatches(char input[], char password[]) {
-  for (int i = 0; i < PASSWORD_LENGTH; i++) {
-    if (input[i] == password[i]) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool keypadInputMatchesPassword() {
-  for (int i = 0; i < MAX_NUMBER_OF_PASSWORDS; i++) {
-    if (passwordMatches(keypadInput, keypadPasswords[i])) {
+  for (const auto & password : passwords) {
+    if (password == keypadInput) {
       return true;
-      break;
     }
   }
 
@@ -89,7 +79,6 @@ void clearOldKeypadInput() {
 
   if (currentTime - lastKeypadInputTime >= CLEAR_PASSWORD_INPUT_INTERVAL_IN_SECONDS) {
     lastKeypadInputTime = currentTime;
-    keypadInputIndex = 0;
-    memset(keypadInput, '\0', PASSWORD_LENGTH);
+    keypadInput.clear();
   }
 }

@@ -28,6 +28,8 @@ const byte KEYPAD_COL_PINS[KEYPAD_COLS] = {5, 4, 3, 2};
 
 const unsigned long CLEAR_PASSWORD_INPUT_INTERVAL_IN_SECONDS = 5;
 
+const char FACTORY_PASSWORD[PASSWORD_LENGTH + 1] = "123456";
+
 void initPasswordKeypad();
 void checkPasswordKeypad(void (*openDoorCallback)());
 
