@@ -2,10 +2,12 @@
 #include "Password_Keypad.h"
 #include "Push_Button.h"
 
-#define DEFAULT_SYSTEM_DELAY_IN_MILISECONDS 100;
+#define DEFAULT_SYSTEM_DELAY_IN_MILISECONDS 50
 
 void setup() {
   Serial.begin(9600);
+
+  Serial.print("Arduino Door Lock starting!");
   initDoorLock();
   initPasswordKeypad();
   initPushButton();
